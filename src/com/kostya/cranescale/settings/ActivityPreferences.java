@@ -55,7 +55,7 @@ public class ActivityPreferences extends PreferenceActivity implements SharedPre
             void setup(Preference name)throws Exception {
                 Context context = name.getContext();
                 int f = scaleModule.getFilterADC();
-                name.setDefaultValue(new Integer(f));
+                name.setDefaultValue(Integer.valueOf(f));
                 name.setTitle(context.getString(R.string.filter_adc) + ' ' + String.valueOf(f));
                 name.setSummary(context.getString(R.string.sum_filter_adc) + ' ' + context.getString(R.string.The_range_is_from_0_to) + context.getResources().getInteger(R.integer.default_adc_filter));
                 name.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
@@ -85,7 +85,7 @@ public class ActivityPreferences extends PreferenceActivity implements SharedPre
             void setup(Preference name)throws Exception {
                 Context context = name.getContext();
                 int t = scaleModule.getTimeOff();
-                name.setDefaultValue(new Integer(t));
+                name.setDefaultValue(Integer.valueOf(t));
                 name.setTitle(context.getString(R.string.Timer_off) + ' ' + t + ' ' + context.getString(R.string.minute));
                 name.setSummary(context.getString(R.string.sum_timer) + ' ' + context.getString(R.string.range) + context.getResources().getInteger(R.integer.default_min_time_off) + context.getString(R.string.to) + context.getResources().getInteger(R.integer.default_max_time_off));
                 name.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {

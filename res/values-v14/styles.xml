@@ -14,32 +14,12 @@
         <item name="android:windowTitleSize">@dimen/title_size</item>
     </style>
 
-    <style name="Preferences.white" parent="android:Theme.Light.NoTitleBar">
-    </style>
-
     <style name="Widget.TextView.ListSeparator" parent="@android:style/Widget.TextView">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <!--<item name="android:textStyle">bold</item>-->
         <!--<item name="android:textSize">@dimen/text_small</item>-->
         <item name="android:gravity">center_vertical</item>
-    </style>
-
-    <style name="PreferenceListHeader" parent="Widget.TextView.ListSeparator">
-        <item name="android:textColor">@color/text</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textSize">@dimen/text_small</item>
-        <item name="android:background">@color/background</item>
-        <item name="android:paddingTop">@dimen/corners</item>
-        <item name="android:paddingBottom">@dimen/corners</item>
-        <item name="android:paddingLeft">@dimen/corners</item>
-    </style>
-
-    <style name="Preferences.black" parent="android:Theme.Black.NoTitleBar">
-        <item name="android:windowBackground">@color/background2</item>
-        <item name="android:horizontalDivider">@color/background</item>
-        <item name="android:dividerHeight">@dimen/stroke</item>
-        <item name="android:listSeparatorTextViewStyle">@style/PreferenceListHeader</item>
     </style>
 
     <style name="CustomButtonImage">
@@ -53,66 +33,13 @@
         <item name="android:paddingBottom">@dimen/corners</item>
     </style>
 
-    <style name="CustomProgressDialogStyle">
-        <item name="android:bottomBright">@color/background1</item>
-        <item name="android:bottomDark">@color/background1</item>
-        <item name="android:bottomMedium">@color/background1</item>
-        <item name="android:centerBright">@color/background1</item>
-        <item name="android:centerDark">@color/background1</item>
-        <item name="android:centerMedium">@color/background1</item>
-        <item name="android:fullBright">@color/background1</item>
-        <item name="android:fullDark">@color/background1</item>
-        <item name="android:topBright">@color/background1</item>
-        <item name="android:topDark">@color/background1</item>
-    </style>
-
     <style name="TextAppearanceWindowTitle" parent="android:TextAppearance.Holo.Widget.ActionBar.Title">
         <item name="android:textColor">@color/white</item>
         <item name="android:textSize">@dimen/text_small</item>
         <item name="android:textStyle">normal</item>
     </style>
 
-    <style name="CustomWeightTextView">
-        <item name="android:indeterminateOnly">false</item>
-        <item name="android:progressDrawable">@drawable/weight_progress</item>
-        <!--<item name="android:indeterminateDrawable">@android:drawable/progress_indeterminate_horizontal</item>-->
-        <item name="android:minHeight">20dip</item>
-        <item name="android:maxHeight">20dip</item>
-    </style>
-    <style name="CustomWeightTextViewGreen">
-        <item name="android:indeterminateOnly">false</item>
-        <item name="android:progressDrawable">@drawable/weight_progress_green</item>
-        <!--<item name="android:indeterminateDrawable">@android:drawable/progress_indeterminate_horizontal</item>-->
-        <item name="android:minHeight">20dip</item>
-        <item name="android:maxHeight">20dip</item>
-    </style>
-
-    <style name="CustomBatteryProgressBar" parent="android:Widget.ProgressBar.Horizontal">
-        <item name="android:layout_width">@dimen/width_battery</item>
-        <item name="android:indeterminateOnly">false</item>
-        <item name="android:progressDrawable">@drawable/battery</item>
-        <item name="android:background">@drawable/b_low</item>
-        <item name="android:max">100</item>
-        <item name="android:paddingTop">6dp</item>
-        <item name="android:paddingBottom">3dp</item>
-    </style>
-
-    <style name="CustomTabWidget" parent="@android:style/Widget.TabWidget">
-        <item name="android:textAppearance">@style/CustomTabWidgetText</item>
-    </style>
-    <style name="CustomTabWidgetText" parent="@android:style/TextAppearance.Widget.TabWidget">
-        <item name="android:textSize">@dimen/text_small</item>
-        <item name="android:textStyle">bold</item>
-        <item name="android:textColor">@color/text</item>
-        <item name="android:padding">@dimen/corners</item>
-        <!--<item name="android:layout_margin">@dimen/padding</item>-->
-    </style>
     <style name="SpanTextKg" parent="@android:style/TextAppearance">
-        <item name="android:textColor">@color/white</item>
-        <item name="android:textSize">@dimen/text_large_x</item>
-        <item name="android:textStyle">italic</item>
-    </style>
-    <style name="EditTextPreferenceFilter" parent="@android:style/TextAppearance">
         <item name="android:textColor">@color/white</item>
         <item name="android:textSize">@dimen/text_large_x</item>
         <item name="android:textStyle">italic</item>

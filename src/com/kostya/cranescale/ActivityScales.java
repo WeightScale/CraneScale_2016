@@ -119,7 +119,7 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
-        //Thread.setDefaultUncaughtExceptionHandler(new ReportHelper(this));
+        Thread.setDefaultUncaughtExceptionHandler(new ReportHelper(this));
         setContentView(R.layout.scale);
 
         globals = Globals.getInstance();
@@ -427,7 +427,6 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
     public boolean isCapture() {
         boolean capture = false;
         while (getWeightToStepMeasuring(moduleWeight) > globals.getAutoCapture()) {
-        /*while (getWeightToStepMeasuring(scaleModule.updateWeight()) > globals.getAutoCapture()) {*/
             if (capture) {
                 return true;
             } else {
@@ -477,7 +476,7 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
 
     private void wakeUp(){
         PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
-        PowerManager.WakeLock wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG");
+        PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
         wakeLock.acquire();
     }
 
@@ -516,8 +515,8 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
                             //startThread();
                             break;
                         case STATUS_VERSION_UNKNOWN:
-
-                            break;
+                            connectResultCallback.connectError(Module.ResultError.CONNECT_ERROR, getString(R.string.not_scale));
+                        break;
                         case STATUS_ATTACH_START:
                             dialogSearch = new ProgressDialog(ActivityScales.this);
                             dialogSearch.setCancelable(false);
@@ -526,12 +525,12 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
                             dialogSearch.setContentView(R.layout.custom_progress_dialog);
                             TextView tv1 = (TextView) dialogSearch.findViewById(R.id.textView1);
                             tv1.setText(getString(R.string.Connecting) + '\n' + scaleModule.getNameBluetoothDevice());
-                            break;
+                        break;
                         case STATUS_ATTACH_FINISH:
                             if (dialogSearch.isShowing()) {
                                 dialogSearch.dismiss();
                             }
-                            break;
+                        break;
                         default:
                     }
                 }
@@ -627,7 +626,6 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
                 try { Thread.sleep(50); } catch (InterruptedException ignored) {}
                 if (!touchWeightView) {                                                                                 //если не прикасаемся к индикатору тогда стабилизируем вес
                     isStable = processStable(moduleWeight);
-                    //isStable = processStable(scaleModule.updateWeight());
                     handler.obtainMessage(Action.UPDATE_PROGRESS.ordinal(), numStable, 0).sendToTarget();
                 }
             }
@@ -636,19 +634,15 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
                 break;
             }
             tempWeight = moduleWeight;
-            //tempWeight = scaleModule.updateWeight();
             if (isStable || weightViewIsSwipe) {
-                handler.obtainMessage(Action.STORE_WEIGHTING.ordinal(), moduleWeight, 0).sendToTarget();                //сохраняем стабильный вес
+                handler.obtainMessage(Action.STORE_WEIGHTING.ordinal(), moduleWeight, 0).sendToTarget();                 //сохраняем стабильный вес
             }
 
             weightViewIsSwipe = false;
 
             while (running && !((moduleWeight >= tempWeight + globals.getDefaultMinAutoCapture())
                     || (moduleWeight <= tempWeight- globals.getDefaultMinAutoCapture()))) {
-            /*while (running) {
-                int weight = scaleModule.updateWeight();
-                if((weight >= tempWeight + globals.getDefaultMinAutoCapture()) || (weight <= tempWeight- globals.getDefaultMinAutoCapture()))
-                    break;*/
+            
                 try { Thread.sleep(50); } catch (InterruptedException ignored) {}                                       // ждем изменения веса
             }
 
@@ -725,23 +719,26 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
                 return;
         running = true;
         threadAutoWeight = new Thread(this);
-        //threadAutoWeight.setPriority(Thread.MIN_PRIORITY);
         //threadAutoWeight.setDaemon(true);
         threadAutoWeight.start();
     }
 
     public void stopThread(){
-        running = false;
-        boolean retry = true;
-        while(retry){
-            try {
-                threadAutoWeight.join(3000);
-            } catch (InterruptedException | NullPointerException e) {}
-            retry = false;
+        if(threadAutoWeight != null){
+            running = false;
+            boolean retry = true;
+            while(retry){
+                try {
+                    threadAutoWeight.join();
+                    retry = false;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
-    class CustomListAdapter extends ArrayAdapter<WeightObject>{
+    static class CustomListAdapter extends ArrayAdapter<WeightObject>{
         final ArrayList<WeightObject> item;
 
         public CustomListAdapter(Context context, int textViewResourceId, ArrayList<WeightObject> objects) {
@@ -771,7 +768,7 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
         }
     }
 
-    class WeightObject {
+    static class WeightObject {
         final String date;
         final String time;
         final int weight;

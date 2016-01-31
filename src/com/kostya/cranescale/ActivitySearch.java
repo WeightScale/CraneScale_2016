@@ -353,7 +353,7 @@ public class ActivitySearch extends Activity implements View.OnClickListener {
                             break;
                         case CONNECT_ERROR:
                             //setTitle(getString(R.string.app_name) + getString(R.string.error_connect)); //установить заголовок
-                            log(getString(R.string.Error_connect) + " " + s);
+                            log(getString(R.string.Error_connect) + ' ' + s);
                             break;
                         default:
                     }
