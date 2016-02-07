@@ -7,7 +7,7 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
-import com.konst.module.ScaleModule;
+import com.konst.module.scale.ScaleModule;
 import com.kostya.cranescale.Globals;
 import com.kostya.cranescale.R;
 

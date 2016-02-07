@@ -16,7 +16,7 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.konst.module.Commands;
-import com.konst.module.ScaleModule;
+import com.konst.module.scale.ScaleModule;
 import com.kostya.cranescale.*;
 import com.kostya.cranescale.bootloader.ActivityBootloader;
 
@@ -39,7 +39,7 @@ public class ActivityPreferences extends PreferenceActivity implements SharedPre
                 name.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference preference) {
-                        if (scaleModule.setScaleNull()) {
+                        if (scaleModule.setOffsetScale()) {
                             Toast.makeText(preference.getContext(), R.string.preferences_yes, Toast.LENGTH_SHORT).show();
                             return true;
                         }

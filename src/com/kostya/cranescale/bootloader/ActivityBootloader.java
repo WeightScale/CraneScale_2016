@@ -16,6 +16,7 @@ import android.widget.TextView;
 import com.konst.bootloader.AVRProgrammer;
 import com.konst.bootloader.HandlerBootloader;
 import com.konst.module.*;
+import com.konst.module.boot.BootModule;
 import com.kostya.cranescale.ActivitySearch;
 import com.kostya.cranescale.Globals;
 import com.kostya.cranescale.Preferences;
@@ -154,11 +155,26 @@ public class ActivityBootloader extends Activity implements View.OnClickListener
                 switch (i) {
                     case DialogInterface.BUTTON_POSITIVE:
                         try {
+                            bootModule = new BootModule("BOOT", addressDevice, connectResultCallback);
+                            log(getString(R.string.bluetooth_off));
+                        } catch (Exception e) {
+                            log(e.getMessage());
+                            finish();
+                        }
+                        try {
+                            globals.setBootModule(bootModule);
+                            //bootModule.init(addressDevice);
+                            //bootModule.attach();
+                        } catch (Exception e) {
+                            connectResultCallback.connectError(Module.ResultError.CONNECT_ERROR, e.getMessage());
+                        }
+
+                        /*try {
                             bootModule.init(addressDevice);
                             bootModule.attach();
                         } catch (Exception e) {
                             connectResultCallback.connectError(Module.ResultError.CONNECT_ERROR, e.getMessage());
-                        }
+                        }*/
                         break;
                     default:
                 }
@@ -177,14 +193,14 @@ public class ActivityBootloader extends Activity implements View.OnClickListener
             dialog.setMessage(getString(R.string.TEXT_MESSAGE));
         dialog.show();
 
-        try {
+        /*try {
             bootModule = new BootModule("BOOT", connectResultCallback);
             globals.setBootModule(bootModule);
             log(getString(R.string.bluetooth_off));
         } catch (Exception e) {
             log(e.getMessage());
             finish();
-        }
+        }*/
     }
 
     @Override
@@ -215,7 +231,7 @@ public class ActivityBootloader extends Activity implements View.OnClickListener
             switch (requestCode) {
                 case REQUEST_CONNECT_BOOT:
                     //scaleModule.obtainMessage(HandlerScaleConnect.Result.STATUS_LOAD_OK.ordinal()).sendToTarget();
-                    connectResultCallback.resultConnect(Module.ResultConnect.STATUS_LOAD_OK);
+                    connectResultCallback.resultConnect(Module.ResultConnect.STATUS_LOAD_OK, "");
                     break;
                 case REQUEST_CONNECT_SCALE:
                     log(getString(R.string.Loading_settings));
@@ -244,7 +260,7 @@ public class ActivityBootloader extends Activity implements View.OnClickListener
         private AlertDialog.Builder dialog;
 
         @Override
-        public void resultConnect(final Module.ResultConnect result) {
+        public void resultConnect(final Module.ResultConnect result, String arg) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

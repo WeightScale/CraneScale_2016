@@ -16,7 +16,7 @@
 
     <item android:id="@android:id/secondaryProgress">
         <clip>
-            <color android:color="#b60b09d1"/>
+            <color android:color="@color/greedDs"/>
             <!--<shape>
                 <corners android:radius="5dip"/>
                 <gradient

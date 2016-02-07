@@ -4,9 +4,8 @@ import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import com.konst.module.BootModule;
-import com.konst.module.Module;
-import com.konst.module.ScaleModule;
+import com.konst.module.boot.BootModule;
+import com.konst.module.scale.ScaleModule;
 
 /**
  * @author Kostya
@@ -29,8 +28,12 @@ public class Globals {
     private int timeDelayDetectCapture;
     /** Минимальное значение авто захвата веса килограммы. */
     private final int defaultMinAutoCapture = 20;
+    /** Процент заряда батареи (0-100%). */
+    private int battery;
     /** Флаг есть соединение. */
     private boolean isScaleConnect;
+
+    public int getBattery() { return battery; }
 
     public PackageInfo getPackageInfo() {
         return packageInfo;

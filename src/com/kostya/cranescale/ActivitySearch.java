@@ -12,6 +12,8 @@ import android.view.*;
 import android.widget.*;
 import com.konst.module.ConnectResultCallback;
 import com.konst.module.Module;
+import com.konst.module.boot.BootModule;
+import com.konst.module.scale.ScaleModule;
 import com.kostya.cranescale.settings.ActivityPreferences;
 import com.kostya.cranescale.settings.ActivityTuning;
 
@@ -34,7 +36,19 @@ public class ActivitySearch extends Activity implements View.OnClickListener {
     private final AdapterView.OnItemClickListener onItemClickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-            if (module.getAdapter().isDiscovering()) {
+
+            String action = getIntent().getAction();
+            try {
+                if ("com.victjava.scales.BOOTLOADER".equals(action))
+                    globals.setBootModule(new BootModule("BOOT", (BluetoothDevice) foundDevice.toArray()[i],connectResultCallback ));
+                else
+                    globals.setScaleModule(new ScaleModule(globals.getPackageInfo().versionName, (BluetoothDevice) foundDevice.toArray()[i],connectResultCallback ));
+
+            } catch (Exception e) {
+                foundDevice.remove(i);
+                bluetoothAdapter.notifyDataSetChanged();
+            }
+            /*if (module.getAdapter().isDiscovering()) {
                 module.getAdapter().cancelDiscovery();
             }
             try {
@@ -43,7 +57,7 @@ public class ActivitySearch extends Activity implements View.OnClickListener {
             } catch (Exception e) {
                 foundDevice.remove(i);
                 bluetoothAdapter.notifyDataSetChanged();
-            }
+            }*/
         }
     };
 
@@ -64,13 +78,13 @@ public class ActivitySearch extends Activity implements View.OnClickListener {
         globals = Globals.getInstance();
         textViewLog = (TextView) findViewById(R.id.textLog);
 
-        String action = getIntent().getAction();
+        /*String action = getIntent().getAction();
         if("bootloader".equals(action)){
             module = globals.getBootModule();
         }else {
             module = globals.getScaleModule();
         }
-        module.setConnectResultCallback(connectResultCallback);
+        module.setConnectResultCallback(connectResultCallback);*/
 
         broadcastReceiver = new BroadcastReceiver() {
 
@@ -107,9 +121,10 @@ public class ActivitySearch extends Activity implements View.OnClickListener {
                         case BluetoothDevice.ACTION_ACL_CONNECTED:
                             setProgressBarIndeterminateVisibility(false);
                             try {
+                                String extras = intent.getParcelableExtra(BluetoothDevice.EXTRA_RSSI);
                                 setTitle(" \"" + module.getNameBluetoothDevice() + "\", v." + module.getModuleVersion()); //установить заголовок
                             } catch (Exception e) {
-                                setTitle(" \"" + e.getMessage() + "\", v." + module.getModuleVersion()); //установить заголовок      }
+                                //setTitle(" \"" + e.getMessage() + "\", v." + module.getModuleVersion()); //установить заголовок      }
                             }
                             break;
                         case BluetoothDevice.ACTION_ACL_DISCONNECTED:
@@ -131,7 +146,7 @@ public class ActivitySearch extends Activity implements View.OnClickListener {
         foundDevice = new ArrayList<>();
 
         for (int i = 0; globals.getPreferencesScale().contains(getString(R.string.KEY_ADDRESS) + i); i++) { //заполнение списка
-            foundDevice.add(module.getAdapter().getRemoteDevice(globals.getPreferencesScale().read(getString(R.string.KEY_ADDRESS) + i, "")));
+            foundDevice.add(BluetoothAdapter.getDefaultAdapter().getRemoteDevice(globals.getPreferencesScale().read(getString(R.string.KEY_ADDRESS) + i, "")));
         }
         bluetoothAdapter = new BluetoothListAdapter(this, foundDevice);
 
@@ -157,8 +172,8 @@ public class ActivitySearch extends Activity implements View.OnClickListener {
 
     //==================================================================================================================
     private void exit() {
-        if (module.getAdapter().isDiscovering()) {
-            module.getAdapter().cancelDiscovery();
+        if (BluetoothAdapter.getDefaultAdapter().isDiscovering()) {
+            BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
         }
         unregisterReceiver(broadcastReceiver);
 
@@ -199,7 +214,7 @@ public class ActivitySearch extends Activity implements View.OnClickListener {
                 registerReceiver(broadcastReceiver, new IntentFilter());
                 unregisterReceiver(broadcastReceiver);
                 registerReceiver(broadcastReceiver, intentFilter);
-                module.getAdapter().startDiscovery();
+                BluetoothAdapter.getDefaultAdapter().startDiscovery();
             break;
             case R.id.exit:
                 //onDestroy();
@@ -223,7 +238,7 @@ public class ActivitySearch extends Activity implements View.OnClickListener {
                 registerReceiver(broadcastReceiver, new IntentFilter());
                 unregisterReceiver(broadcastReceiver);
                 registerReceiver(broadcastReceiver, intentFilter);
-                module.getAdapter().startDiscovery();
+                BluetoothAdapter.getDefaultAdapter().startDiscovery();
                 break;
             default:
         }
@@ -257,7 +272,7 @@ public class ActivitySearch extends Activity implements View.OnClickListener {
         private ProgressDialog dialogSearch;
 
         @Override
-        public void resultConnect(final Module.ResultConnect result) {
+        public void resultConnect(final Module.ResultConnect result, String arg) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -267,7 +282,7 @@ public class ActivitySearch extends Activity implements View.OnClickListener {
                             finish();
                             break;
                         case STATUS_VERSION_UNKNOWN:
-                            log(module.getNameBluetoothDevice() + " " + getString(R.string.not_scale)+globals.getPackageInfo().versionName);
+                            log(arg + " " + getString(R.string.not_scale) + globals.getPackageInfo().versionName);
                             break;
                         case STATUS_ATTACH_START:
                             listView.setEnabled(false);
@@ -277,10 +292,10 @@ public class ActivitySearch extends Activity implements View.OnClickListener {
                             dialogSearch.show();
                             dialogSearch.setContentView(R.layout.custom_progress_dialog);
                             TextView tv1 = (TextView) dialogSearch.findViewById(R.id.textView1);
-                            tv1.setText(getString(R.string.Connecting) + '\n' + module.getNameBluetoothDevice());
+                            tv1.setText(getString(R.string.Connecting) + '\n' + arg);
 
                             //setProgressBarIndeterminateVisibility(true);
-                            setTitle(getString(R.string.Connecting) + getString(R.string.app_name) + ' ' + module.getNameBluetoothDevice()); //установить заголовок
+                            setTitle(getString(R.string.Connecting) + getString(R.string.app_name) + ' ' + arg); //установить заголовок
                             break;
                         case STATUS_ATTACH_FINISH:
                             listView.setEnabled(true);

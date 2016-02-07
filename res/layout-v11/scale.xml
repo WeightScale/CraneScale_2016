@@ -22,10 +22,9 @@
                              android:layout_width="match_parent"
                              android:layout_height="@dimen/corners" android:id="@+id/progressBarStable"
                              android:focusableInTouchMode="false"
-                             android:layout_marginLeft="@dimen/padding"
-                             android:layout_marginRight="@dimen/padding"
                              android:progressDrawable="@drawable/progress_stable"
-                             android:layout_marginTop="@dimen/padding"/>
+                             android:layout_marginTop="@dimen/padding"
+                             android:progress="46"/>
                 <LinearLayout android:layout_width="fill_parent"
                               android:layout_height="wrap_content"
                               android:id="@+id/linearLayout"
@@ -38,7 +37,9 @@
                             android:textColor="@color/white"
                             android:textSize="@dimen/text_big"
                             android:gravity="center" android:clickable="true"
-                            android:textAppearance="?android:attr/textAppearanceMedium"/>
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:text="2356"
+                            android:textStyle="italic"/>
                 </LinearLayout>
             </FrameLayout>
             <ProgressBar style="@android:style/Widget.ProgressBar.Horizontal"
@@ -46,8 +47,8 @@
                          android:layout_height="@dimen/height_progress_weight" android:id="@+id/progressBarWeight"
                          android:layout_gravity="left|center_vertical" android:progressDrawable="@drawable/progress_weight"
                          android:focusableInTouchMode="false"
-                         android:layout_marginBottom="@dimen/padding" android:layout_marginLeft="@dimen/padding"
-                         android:layout_marginRight="@dimen/padding"/>
+                         android:layout_marginBottom="@dimen/padding"
+            />
         </LinearLayout>
 
         <LinearLayout
@@ -56,8 +57,7 @@
                 android:layout_height="wrap_content"
                 android:background="@color/orange">
 
-            <TextView
-                    android:id="@+id/textBattery"
+            <TextView android:id="@+id/textBattery"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"

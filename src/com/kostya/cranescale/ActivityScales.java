@@ -20,6 +20,7 @@ import android.text.style.TextAppearanceSpan;
 import android.view.*;
 import android.widget.*;
 import com.konst.module.*;
+import com.konst.module.scale.ScaleModule;
 import com.kostya.cranescale.settings.ActivityPreferences;
 import com.kostya.cranescale.settings.ActivityTuning;
 
@@ -47,8 +48,8 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
     private LinearLayout layoutScale;
     private BroadcastReceiver broadcastReceiver; //приёмник намерений
     private ScaleModule scaleModule;
-    //private BatteryTemperatureCallback batteryTemperatureCallback;
-    //private WeightCallback weightCallback;
+    private BatteryTemperatureCallback batteryTemperatureCallback;
+    private WeightCallback weightCallback;
 
     public int numStable;
     private int moduleWeight;
@@ -212,13 +213,13 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
         //Toast.makeText(getBaseContext(), R.string.bluetooth_off, Toast.LENGTH_SHORT).show();
         //connectScaleModule(Preferences.read(getString(R.string.KEY_LAST_SCALES), ""));
         try {
-            scaleModule = new ScaleModule(globals.getPackageInfo().versionName, connectResultCallback);
+            scaleModule = new ScaleModule(globals.getPackageInfo().versionName, globals.getPreferencesScale().read(getString(R.string.KEY_LAST_SCALES), ""), connectResultCallback);
             //scaleModule = new ScaleModule(main.getPackageInfo().versionName, handlerConnect);
             globals.setScaleModule(scaleModule);
             scaleModule.setTimerNull(globals.getPreferencesScale().read(getString(R.string.KEY_TIMER_NULL), getResources().getInteger(R.integer.default_max_time_auto_null)));
             scaleModule.setWeightError(globals.getPreferencesScale().read(getString(R.string.KEY_MAX_NULL), getResources().getInteger(R.integer.default_limit_auto_null)));
             Toast.makeText(getBaseContext(), R.string.bluetooth_off, Toast.LENGTH_SHORT).show();
-            connectScaleModule(globals.getPreferencesScale().read(getString(R.string.KEY_LAST_SCALES), ""));
+            //connectScaleModule(globals.getPreferencesScale().read(getString(R.string.KEY_LAST_SCALES), ""));
         } catch (Exception e) {
             Toast.makeText(getBaseContext(), e.getMessage(), Toast.LENGTH_LONG).show();
             finish();
@@ -282,7 +283,7 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
                     public void onClick(DialogInterface dialogInterface, int i) {
                         if (i == DialogInterface.BUTTON_POSITIVE) {
                             if (globals.isScaleConnect())
-                                scaleModule.setModulePowerOff();
+                                scaleModule.powerOff();
                             finish();
                         }
                     }
@@ -309,7 +310,8 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
         setProgressBarIndeterminateVisibility(false);
         switch (resultCode) {
             case RESULT_OK:
-                connectResultCallback.resultConnect(Module.ResultConnect.STATUS_LOAD_OK);
+                scaleModule = globals.getScaleModule();
+                connectResultCallback.resultConnect(Module.ResultConnect.STATUS_LOAD_OK, "");
                 break;
             case RESULT_CANCELED:
                 //scaleModule.obtainMessage(RESULT_CANCELED, "Connect error").sendToTarget();
@@ -318,10 +320,53 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
         }
     }
 
+    @Override
+    public void run() {
+        handler.obtainMessage(Action.START.ordinal()).sendToTarget();
+        try { Thread.sleep(50); } catch (InterruptedException ignored) {}
+        while (running) {
+
+            weightViewIsSwipe = false;
+            numStable = 0;
+
+            while (running && !isCapture() && !weightViewIsSwipe) {                                                     //ждём начала нагружения
+                try { Thread.sleep(50); } catch (InterruptedException ignored) { }
+            }
+            handler.obtainMessage(Action.START_WEIGHTING.ordinal()).sendToTarget();
+            isStable = false;
+            while (running && !(isStable || weightViewIsSwipe)) {                                                       //ждем стабилизации веса или нажатием выбора веса
+                try { Thread.sleep(50); } catch (InterruptedException ignored) {}
+                if (!touchWeightView) {                                                                                 //если не прикасаемся к индикатору тогда стабилизируем вес
+                    isStable = processStable(moduleWeight);
+                    handler.obtainMessage(Action.UPDATE_PROGRESS.ordinal(), numStable, 0).sendToTarget();
+                }
+            }
+            numStable = COUNT_STABLE;
+            if (!running) {
+                break;
+            }
+            tempWeight = moduleWeight;
+            if (isStable || weightViewIsSwipe) {
+                handler.obtainMessage(Action.STORE_WEIGHTING.ordinal(), moduleWeight, 0).sendToTarget();                 //сохраняем стабильный вес
+            }
+
+            weightViewIsSwipe = false;
+
+            while (running && !((moduleWeight >= tempWeight + globals.getDefaultMinAutoCapture())
+                    || (moduleWeight <= tempWeight- globals.getDefaultMinAutoCapture()))) {
+
+                try { Thread.sleep(50); } catch (InterruptedException ignored) {}                                       // ждем изменения веса
+            }
+
+            handler.obtainMessage(Action.STOP_WEIGHTING.ordinal()).sendToTarget();
+            try { TimeUnit.SECONDS.sleep(1); } catch (InterruptedException e) {}
+        }
+    }
+
     /** Соеденяемся с Весовым модулем.
      * Инициализируем созданый экземпляр модуля.
      */
-    private void connectScaleModule(String address) {
+   /* private void connectScaleModule(String address) {
         try {
             scaleModule.init(address);
             scaleModule.attach();
@@ -329,7 +374,7 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
             openSearch();
         }
 
-    }
+    }*/
 
     private void setupWeightView() {
 
@@ -494,7 +539,7 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
          * @param resultConnect Результат соединения энкмератор ResultConnect.
          */
         @Override
-        public void resultConnect(Module.ResultConnect resultConnect) {
+        public void resultConnect(Module.ResultConnect resultConnect, String arg) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -508,10 +553,10 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
                             globals.getPreferencesScale().write(getString(R.string.KEY_LAST_SCALES), scaleModule.getAddressBluetoothDevice());
                             setupListView();
                             setupWeightView();
-                            //batteryTemperatureCallback = new BatteryTemperatureCallback();
-                            //weightCallback = new WeightCallback();
-                            //scaleModule.startMeasuringWeight(weightCallback);
-                            //scaleModule.startMeasuringBatteryTemperature(batteryTemperatureCallback);
+                            batteryTemperatureCallback = new BatteryTemperatureCallback();
+                            weightCallback = new WeightCallback();
+                            scaleModule.startMeasuringWeight(weightCallback);
+                            scaleModule.startMeasuringBatteryTemperature(batteryTemperatureCallback);
                             //startThread();
                             break;
                         case STATUS_VERSION_UNKNOWN:
@@ -524,7 +569,7 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
                             dialogSearch.show();
                             dialogSearch.setContentView(R.layout.custom_progress_dialog);
                             TextView tv1 = (TextView) dialogSearch.findViewById(R.id.textView1);
-                            tv1.setText(getString(R.string.Connecting) + '\n' + scaleModule.getNameBluetoothDevice());
+                            tv1.setText(getString(R.string.Connecting) + '\n' + arg);
                         break;
                         case STATUS_ATTACH_FINISH:
                             if (dialogSearch.isShowing()) {
@@ -607,49 +652,6 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
             });
         }
     };
-
-    @Override
-    public void run() {
-        handler.obtainMessage(Action.START.ordinal()).sendToTarget();
-        try { Thread.sleep(50); } catch (InterruptedException ignored) {}
-        while (running) {
-
-            weightViewIsSwipe = false;
-            numStable = 0;
-
-            while (running && !isCapture() && !weightViewIsSwipe) {                                                     //ждём начала нагружения
-                try { Thread.sleep(50); } catch (InterruptedException ignored) { }
-            }
-            handler.obtainMessage(Action.START_WEIGHTING.ordinal()).sendToTarget();
-            isStable = false;
-            while (running && !(isStable || weightViewIsSwipe)) {                                                       //ждем стабилизации веса или нажатием выбора веса
-                try { Thread.sleep(50); } catch (InterruptedException ignored) {}
-                if (!touchWeightView) {                                                                                 //если не прикасаемся к индикатору тогда стабилизируем вес
-                    isStable = processStable(moduleWeight);
-                    handler.obtainMessage(Action.UPDATE_PROGRESS.ordinal(), numStable, 0).sendToTarget();
-                }
-            }
-            numStable = COUNT_STABLE;
-            if (!running) {
-                break;
-            }
-            tempWeight = moduleWeight;
-            if (isStable || weightViewIsSwipe) {
-                handler.obtainMessage(Action.STORE_WEIGHTING.ordinal(), moduleWeight, 0).sendToTarget();                 //сохраняем стабильный вес
-            }
-
-            weightViewIsSwipe = false;
-
-            while (running && !((moduleWeight >= tempWeight + globals.getDefaultMinAutoCapture())
-                    || (moduleWeight <= tempWeight- globals.getDefaultMinAutoCapture()))) {
-            
-                try { Thread.sleep(50); } catch (InterruptedException ignored) {}                                       // ждем изменения веса
-            }
-
-            handler.obtainMessage(Action.STOP_WEIGHTING.ordinal()).sendToTarget();
-            try { TimeUnit.SECONDS.sleep(1); } catch (InterruptedException e) {}
-        }
-    }
 
     /**
      * Обработчик сообщений.
@@ -797,7 +799,7 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
     }
 
     /** Класс обработчик показаний заряда батареи и температуры. */
-    ScaleModule.BatteryTemperatureCallback batteryTemperatureCallback = new  ScaleModule.BatteryTemperatureCallback() {
+    class BatteryTemperatureCallback implements ScaleModule.BatteryTemperatureCallback {
         /** Сообщение
          * @param battery Заряд батареи в процентах.
          * @param temperature Температура в градусах.*/
@@ -819,14 +821,13 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
                         textViewBattery.setTextColor(Color.BLUE);
                         textViewBattery.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_action_battery_red, 0, 0, 0);
                     }
-
                 }
             });
         }
     };
 
     /** Класс обработки показаний веса. */
-    ScaleModule.WeightCallback weightCallback = new ScaleModule.WeightCallback() {
+    class WeightCallback implements ScaleModule.WeightCallback {
 
         /** Сообщение показаний веса.
          *  @param what Результат статуса сообщения энумератор ResultWeight.
@@ -852,7 +853,7 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
                             bounds = progressBarWeight.getProgressDrawable().getBounds();
                             progressBarWeight.setProgressDrawable(dProgressWeight);
                             progressBarWeight.getProgressDrawable().setBounds(bounds);
-                            break;
+                        break;
                         case WEIGHT_LIMIT:
                             w = new SpannableStringBuilder(textWeight);
                             w.setSpan(new AbsoluteSizeSpan(getResources().getDimensionPixelSize(R.dimen.text_big)), 0, w.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
@@ -862,21 +863,21 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
                             bounds = progressBarWeight.getProgressDrawable().getBounds();
                             progressBarWeight.setProgressDrawable(dWeightDanger);
                             progressBarWeight.getProgressDrawable().setBounds(bounds);
-                            break;
+                        break;
                         case WEIGHT_MARGIN:
                             w = new SpannableStringBuilder(getString(R.string.OVER_LOAD));
                             w.setSpan(new AbsoluteSizeSpan(getResources().getDimensionPixelSize(R.dimen.text_large_xx)), 0, w.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
                             w.setSpan(new ForegroundColorSpan(Color.RED), 0, w.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
                             progressBarWeight.setProgress(sensor);
                             vibrator.vibrate(100);
-                            break;
+                        break;
                         case WEIGHT_ERROR:
                             w = new SpannableStringBuilder(getString(R.string.NO_CONNECT));
                             w.setSpan(new AbsoluteSizeSpan(getResources().getDimensionPixelSize(R.dimen.text_large_xx)), 0, w.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
                             w.setSpan(new ForegroundColorSpan(Color.RED), 0, w.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
                             moduleWeight = 0;
                             progressBarWeight.setProgress(0);
-                            break;
+                        break;
                         default:
                     }
                     weightTextView.setText(w, TextView.BufferType.SPANNABLE);
@@ -898,7 +899,11 @@ public class ActivityScales extends Activity implements View.OnClickListener, Ru
 
         @Override
         public void uncaughtException(Thread thread, Throwable ex) {
-            showToastInThread(ex.getMessage());
+            String text = ex.getMessage();
+            if(text == null){
+                text = "";
+            }
+            showToastInThread(text);
         }
 
         public void showToastInThread(final CharSequence str){

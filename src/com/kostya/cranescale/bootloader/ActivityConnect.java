@@ -20,9 +20,9 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.konst.module.BootModule;
 import com.konst.module.ConnectResultCallback;
 import com.konst.module.Module;
+import com.konst.module.boot.BootModule;
 import com.kostya.cranescale.Globals;
 import com.kostya.cranescale.Internet;
 import com.kostya.cranescale.R;
@@ -228,8 +228,8 @@ public class ActivityConnect extends Activity implements View.OnClickListener {
                 break;
             case R.id.buttonSearchBluetooth:
                 try {
-                    bootModule.init(getIntent().getStringExtra("address"));
-                    bootModule.attach();
+                    /*bootModule.init(getIntent().getStringExtra("address"));
+                    bootModule.attach();*/
                 } catch (Exception e) {
                     connectResultCallback.connectError(Module.ResultError.CONNECT_ERROR, e.getMessage());
                 }
@@ -240,7 +240,7 @@ public class ActivityConnect extends Activity implements View.OnClickListener {
 
     final ConnectResultCallback connectResultCallback = new ConnectResultCallback() {
         @Override
-        public void resultConnect(Module.ResultConnect result) {
+        public void resultConnect(Module.ResultConnect result, String arg) {
             switch (result) {
                 case STATUS_LOAD_OK:
                     setResult(RESULT_OK, new Intent());

@@ -8,7 +8,7 @@ import android.text.Spanned;
 import android.text.style.StyleSpan;
 import android.view.WindowManager;
 import android.widget.TextView;
-import com.konst.module.ScaleModule;
+import com.konst.module.scale.ScaleModule;
 
 /*
  * Created by Kostya on 26.04.14.
@@ -41,7 +41,7 @@ public class ActivityAbout extends Activity {
         },
         BATTERY(R.string.Battery) {
             @Override
-            String getValue() { return scaleModule.getBattery() + " %"; }
+            String getValue() { return globals.getBattery() + " %"; }
 
             @Override
             int getMeasure() { return -1; }
@@ -49,7 +49,7 @@ public class ActivityAbout extends Activity {
         TEMPERATURE(R.string.Temperature) {
             @Override
             String getValue() {
-                return globals.isScaleConnect()?scaleModule.getModuleTemperature() + "°" + 'C' :"error"+ '\n';
+                return globals.isScaleConnect()?scaleModule.getTemperature() + "°" + 'C' :"error"+ '\n';
             }
 
             @Override

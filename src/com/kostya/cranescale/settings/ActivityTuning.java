@@ -18,8 +18,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.*;
 import com.konst.module.Commands;
-import com.konst.module.InterfaceVersions;
-import com.konst.module.ScaleModule;
+import com.konst.module.scale.ScaleModule;
 import com.kostya.cranescale.Globals;
 import com.kostya.cranescale.R;
 import com.kostya.cranescale.bootloader.ActivityBootloader;
@@ -139,7 +138,7 @@ public class ActivityTuning extends PreferenceActivity {
             @Override
             void setup(Preference name) throws Exception {
                 Context context = name.getContext();
-                name.setTitle(context.getString(R.string.Battery) + scaleModule.getBattery() + '%');
+                name.setTitle(context.getString(R.string.Battery) + globals.getBattery() + '%');
                 name.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                     @Override
                     public boolean onPreferenceChange(Preference preference, Object o) {
@@ -148,8 +147,7 @@ public class ActivityTuning extends PreferenceActivity {
                             return false;
                         }
                         if (scaleModule.setModuleBatteryCharge(Integer.valueOf(o.toString()))) {
-                            scaleModule.setBattery(Integer.valueOf(o.toString()));
-                            preference.setTitle(context.getString(R.string.Battery) + scaleModule.getBattery() + '%');
+                            preference.setTitle(context.getString(R.string.Battery) + o + '%');
                             Toast.makeText(context, R.string.preferences_yes, Toast.LENGTH_SHORT).show();
                             return true;
                         }
@@ -212,7 +210,7 @@ public class ActivityTuning extends PreferenceActivity {
                         intent.putExtra(Commands.CMD_VERSION.getName(), scaleModule.getNumVersion());
 
                         if (globals.isScaleConnect()){
-                            if(scaleModule.setModulePowerOff())
+                            if(scaleModule.powerOff())
                                 intent.putExtra("com.konst.simple_scale.POWER", true);
                         }
                         scaleModule.dettach();
